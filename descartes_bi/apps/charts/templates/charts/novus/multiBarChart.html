@@ -1,0 +1,69 @@
+{% load i18n %}
+
+<!--
+{{ series_results }}
+-->
+
+<style>
+    body {
+      overflow-y:scroll;
+      color: #666 !important;
+    }
+
+    text {
+      font: 12px sans-serif;
+    }
+
+    #chart{{ chart.id }} svg {
+        height: 80%;
+        margin: 10px;
+        min-width: 45em;
+        min-height: 50em;
+    }
+</style>
+<body>
+    <div id="chart{{ chart.id }}" style="margin:2px; color: #666; min-height:60em;">
+        {% if chart.title %}
+            <h1>{{ chart.title }}</h1>
+        {% endif %}
+        <svg> </svg>
+    </div>
+    <script>
+        var data = {{ series_results|safe }}
+        nv.addGraph(function() {
+        var chart;
+        chart = nv.models.multiBarChart()
+            .x(function(d) { return d.x })
+            .y(function(d) { return d.y })
+            .margin({top: 30, right: 20, bottom: 115, left: 75})
+            .barColor(d3.scale.category10().range())
+            .showLegend(false)
+            .showControls(false);
+
+        chart.multibar
+            .hideable(true);
+
+        chart.reduceXTicks(false).staggerLabels(true);
+
+        chart.yAxis.showMaxMin(false);
+
+        d3.select('#chart{{chart.id}} svg')
+            .datum(data)
+            .transition().duration(500)
+            .call(chart);
+
+        d3.select('#chart{{chart.id}} svg')
+            .selectAll('.nv-x.nv-axis > g')
+            .selectAll('g')
+            .selectAll('text')
+            .style("text-anchor", "end")
+            .attr('transform', function(d) { return 'translate (0, 0) rotate(-65 -5,10)' });
+
+        nv.utils.windowResize(chart.update);
+
+        chart.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
+
+        return chart;
+        });
+    </script>
+</body>
